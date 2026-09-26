@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { signInWithPassword } from "@/lib/auth/actions";
-import styles from "../admin.module.css";
+import styles from "./login.module.css";
 
 const initialState = { error: null };
 
