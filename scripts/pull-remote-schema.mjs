@@ -1,43 +1,17 @@
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { loadEnvFile } from "./lib/load-env.mjs";
 
-const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
-
-function loadEnvFile() {
-  const envPath = path.join(root, ".env");
-  if (!fs.existsSync(envPath)) {
-    return;
-  }
-
-  for (const line of fs.readFileSync(envPath, "utf8").split("\n")) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith("#")) {
-      continue;
-    }
-    const eq = trimmed.indexOf("=");
-    if (eq === -1) {
-      continue;
-    }
-    const key = trimmed.slice(0, eq).trim();
-    const value = trimmed.slice(eq + 1).trim();
-    if (process.env[key] === undefined) {
-      process.env[key] = value;
-    }
-  }
-}
-
-loadEnvFile();
+const root = loadEnvFile();
 
 const projectRef = process.env.SUPABASE_PROJECT_REF?.trim();
 const accessToken = process.env.SUPABASE_ACCESS_TOKEN?.trim();
 
 if (!projectRef || !accessToken) {
-  console.error(
-    "Missing SUPABASE_PROJECT_REF or SUPABASE_ACCESS_TOKEN in .env"
+  console.warn(
+    "Skipping TypeScript types: set SUPABASE_PROJECT_REF and SUPABASE_ACCESS_TOKEN for db:types"
   );
-  console.error("Create a token: https://supabase.com/dashboard/account/tokens");
-  process.exit(1);
+  process.exit(0);
 }
 
 const url = new URL(
