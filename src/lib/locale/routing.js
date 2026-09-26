@@ -51,6 +51,8 @@ export function getInternalLocalePath(pathname, locale) {
 export function shouldSkipLocaleRouting(pathname) {
   return (
     pathname.startsWith("/api") ||
+    pathname.startsWith("/auth") ||
+    pathname.startsWith("/admin") ||
     pathname.startsWith("/_next") ||
     pathname === "/favicon.ico"
   );

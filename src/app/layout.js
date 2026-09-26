@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
 import Navigation from "@/components/navigation/navigation";
+import { ADMIN_HEADER } from "@/lib/auth/constants";
 import { DEFAULT_LOCALE } from "@/lib/locale/constants";
 import { LOCALE_HEADER } from "@/lib/locale/routing";
 import {
@@ -18,6 +19,7 @@ export const metadata = {
 export default async function RootLayout({ children }) {
   const headerStore = await headers();
   const locale = headerStore.get(LOCALE_HEADER) ?? DEFAULT_LOCALE;
+  const isAdminRoute = headerStore.get(ADMIN_HEADER) === "1";
 
   const [{ projects, works }, events, texts] = await Promise.all([
     getNavigationWorkListData(),
@@ -31,12 +33,14 @@ export default async function RootLayout({ children }) {
       className={`${gothicA1.variable} ${inter.variable} ${archivoNarrow.variable}`}
     >
       <body>
-        <Navigation
-          initialProjects={projects}
-          initialWorks={works}
-          initialEvents={events}
-          initialTexts={texts}
-        />
+        {isAdminRoute ? null : (
+          <Navigation
+            initialProjects={projects}
+            initialWorks={works}
+            initialEvents={events}
+            initialTexts={texts}
+          />
+        )}
         {children}
       </body>
     </html>

@@ -1,22 +1,77 @@
 import { NextResponse } from "next/server";
 import {
+  ADMIN_HEADER,
+  ADMIN_HOME_PATH,
+  ADMIN_LOGIN_PATH,
+} from "@/lib/auth/constants";
+import {
   getInternalLocalePath,
   getLocaleFromPathname,
   LOCALE_HEADER,
   shouldSkipLocaleRouting,
 } from "@/lib/locale/routing";
+import { copyResponseCookies, updateSession } from "@/lib/supabase/proxy";
 
-export function proxy(request) {
+function isAdminLoginPath(pathname) {
+  return pathname === ADMIN_LOGIN_PATH;
+}
+
+function withAdminHeader(response, isAdminRoute) {
+  if (isAdminRoute) {
+    response.headers.set(ADMIN_HEADER, "1");
+  }
+
+  return response;
+}
+
+function finalizeResponse(sessionResponse, response, isAdminRoute) {
+  copyResponseCookies(sessionResponse, response);
+  return withAdminHeader(response, isAdminRoute);
+}
+
+export async function proxy(request) {
   const { pathname } = request.nextUrl;
+  const isAdminRoute = pathname.startsWith("/admin");
+
+  const { response: sessionResponse, user } = await updateSession(request);
+
+  if (isAdminRoute) {
+    const isLoginPage = isAdminLoginPath(pathname);
+
+    if (!user && !isLoginPage) {
+      const url = request.nextUrl.clone();
+      url.pathname = ADMIN_LOGIN_PATH;
+      if (pathname !== ADMIN_HOME_PATH) {
+        url.searchParams.set("next", pathname);
+      }
+      return finalizeResponse(
+        sessionResponse,
+        NextResponse.redirect(url),
+        true
+      );
+    }
+
+    if (user && isLoginPage) {
+      return finalizeResponse(
+        sessionResponse,
+        NextResponse.redirect(new URL(ADMIN_HOME_PATH, request.url)),
+        true
+      );
+    }
+
+    if (shouldSkipLocaleRouting(pathname)) {
+      return finalizeResponse(sessionResponse, sessionResponse, true);
+    }
+  }
 
   if (shouldSkipLocaleRouting(pathname)) {
-    return NextResponse.next();
+    return sessionResponse;
   }
 
   if (pathname === "/ko" || pathname.startsWith("/ko/")) {
     const url = request.nextUrl.clone();
     url.pathname = pathname === "/ko" ? "/" : pathname.slice(3) || "/";
-    return NextResponse.redirect(url);
+    return finalizeResponse(sessionResponse, NextResponse.redirect(url), false);
   }
 
   const locale = getLocaleFromPathname(pathname);
@@ -24,9 +79,13 @@ export function proxy(request) {
   requestHeaders.set(LOCALE_HEADER, locale);
 
   if (locale === "en") {
-    return NextResponse.next({
-      request: { headers: requestHeaders },
-    });
+    return finalizeResponse(
+      sessionResponse,
+      NextResponse.next({
+        request: { headers: requestHeaders },
+      }),
+      false
+    );
   }
 
   const rewritePath = getInternalLocalePath(pathname, "ko");
@@ -35,9 +94,13 @@ export function proxy(request) {
     request.url
   );
 
-  return NextResponse.rewrite(rewriteUrl, {
-    request: { headers: requestHeaders },
-  });
+  return finalizeResponse(
+    sessionResponse,
+    NextResponse.rewrite(rewriteUrl, {
+      request: { headers: requestHeaders },
+    }),
+    false
+  );
 }
 
 export const config = {
