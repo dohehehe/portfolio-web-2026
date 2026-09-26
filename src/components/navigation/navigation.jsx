@@ -13,7 +13,7 @@ import {
 } from "@/lib/locale/routing";
 import { useNavigationScrollHide } from "@/hooks/useNavigationScrollHide";
 import InstallationNavLabel from "./InstallationNavLabel";
-import WorkList from "./workList";
+import WorkList from "../work/workList";
 import styles from "./navigation.module.css";
 
 function isWorkListRoute(pathname) {

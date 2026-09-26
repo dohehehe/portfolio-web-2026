@@ -10,8 +10,8 @@ import {
   stripLocaleFromPathname,
 } from "@/lib/locale/routing";
 import { barlow } from "@/app/fonts";
-import { groupWorksByProject } from "./workListUtils";
-import styles from "./workList.module.css";
+import { groupWorksByProject } from "@/components/work/workListUtils";
+import styles from "@/components/work/workList.module.css";
 
 function RowLink({ href, title, year }) {
   return (

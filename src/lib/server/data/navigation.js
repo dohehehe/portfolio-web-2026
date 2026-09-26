@@ -3,7 +3,7 @@ import "server-only";
 import {
   sortByYearDesc,
   sortWorksByOrder,
-} from "@/components/navigation/workListUtils";
+} from "@/components/work/workListUtils";
 import { getDataClient } from "@/lib/server/data/supabase";
 
 const NAV_PROJECT_COLUMNS = "id,created_at,year,title_ko,title_en";
