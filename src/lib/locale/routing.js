@@ -55,3 +55,16 @@ export function shouldSkipLocaleRouting(pathname) {
     pathname === "/favicon.ico"
   );
 }
+
+const LIST_ONLY_ROUTES = new Set(["/work", "/text", "/event", "/info"]);
+
+export function isDetailRoute(pathname) {
+  const path = stripLocaleFromPathname(pathname);
+
+  if (LIST_ONLY_ROUTES.has(path)) {
+    return false;
+  }
+
+  const segments = path.split("/").filter(Boolean);
+  return segments.length === 2;
+}
