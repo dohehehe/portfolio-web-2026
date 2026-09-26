@@ -1,0 +1,21 @@
+.switch {
+  display: flex;
+  gap: 0.35rem;
+  font-size: 0.875rem;
+}
+
+.button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  opacity: 0.35;
+}
+
+.button:hover,
+.buttonActive {
+  opacity: 1;
+}
